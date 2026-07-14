@@ -1178,7 +1178,7 @@ h2.head.center{margin:0 auto}
     <div class="asuccess" id="aSuccessView">
       <div class="achk">✓</div>
       <h3>Your report is <span class="it">generating.</span></h3>
-      <p>It will hit <b id="aSuccessEmail">your inbox</b> in a few minutes, with what AI recommends in your category today. If it's already you, you don't need us.</p>
+      <p>We're building it now and will send it to <b id="aSuccessEmail">your inbox</b> shortly, with what AI recommends in your category today. If it's already you, you don't need us.</p>
     </div>
   </div>
 </div>
@@ -1481,16 +1481,21 @@ beacon('pageview');
 addEventListener('scroll',(()=>{let sent={};return()=>{const d=Math.round(scrollY/(document.documentElement.scrollHeight-innerHeight)*100);[25,50,75,100].forEach(m=>{if(d>=m&&!sent[m]){sent[m]=1;beacon('scroll_'+m)}})}})(),{passive:true});
 
 /* ===== AUDIT MODAL + FORM ===== */
-/* ── Audit lead delivery ─────────────────────────────────────────────
-   Reliable + automatic, no backend. ONE-TIME SETUP (only you can do it, ~60s):
-     1. Go to https://web3forms.com
-     2. Enter the inbox where you want leads → it shows an Access Key instantly
-     3. Paste that key into WEB3FORMS_KEY below (or send it to me and I'll paste it)
-   After that, every submission auto-emails you. No activation step, no dashboard.
-   Until the key is set (or if delivery ever fails), the form hands the lead to the
-   visitor's own mail app pre-addressed to LEAD_EMAIL, so a lead is never lost. */
-const WEB3FORMS_KEY="";                         /* <-- paste your Web3Forms access key here */
-const LEAD_EMAIL="arnav@zenithbureau.com";  /* fallback inbox — used only if the audit backend is unreachable */
+/* ── Audit lead delivery → Google Sheet ──────────────────────────────
+   Every submission is appended as a row to a Google Sheet you own, via a
+   Google Apps Script web app (no third party, free, you control the data).
+   ONE-TIME SETUP (only you can do it, browser-only, ~3 min):
+     1. Create a blank Google Sheet (sheets.new).
+     2. Extensions → Apps Script. Delete the sample code, paste the doPost
+        script Arnav has (it appends Timestamp/Name/Email/Company/Role/Source).
+     3. Deploy → New deployment → type "Web app" → Execute as: Me →
+        Who has access: "Anyone" → Deploy. Authorize when prompted.
+     4. Copy the Web app URL (ends in /exec) and paste it into SHEET_ENDPOINT.
+   Until the endpoint is set (or if it's ever unreachable), the form hands the
+   lead to the visitor's own mail app pre-addressed to LEAD_EMAIL, so a lead is
+   never lost. */
+const SHEET_ENDPOINT="";                     /* <-- paste your Apps Script /exec web-app URL here */
+const LEAD_EMAIL="arnav@zenithbureau.com";  /* fallback inbox — used only if the Sheet endpoint is unreachable */
 const amodal=document.getElementById('amodal'),aForm=document.getElementById('aForm'),
       aFormView=document.getElementById('aFormView'),aSuccessView=document.getElementById('aSuccessView'),
       aSubmit=document.getElementById('aSubmit'),aClose=document.getElementById('aClose');
@@ -1531,15 +1536,17 @@ aForm.addEventListener('submit',async e=>{
   const attrLine=`from ${attr.referrer}${attr.utm_source?' · '+attr.utm_source+'/'+attr.utm_medium:''} · seen ${attr.first_seen}`;
   beacon('audit_submit',{name,email,company_url:url,role});
   let delivered=false;
-  if(WEB3FORMS_KEY){
+  if(SHEET_ENDPOINT){
     try{
-      const res=await fetch('https://api.web3forms.com/submit',{
-        method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},
-        body:JSON.stringify({access_key:WEB3FORMS_KEY,subject:`New AI Visibility Audit · ${name} (${url})`,
-          from_name:'Zenith Bureau site',name,email,company_url:url,role,attribution:attrLine})
+      /* no-cors POST so the browser never blocks the cross-origin request to
+         Apps Script; the response is opaque, so a completed request (no throw)
+         means the row was written. Body is form-encoded → lands in e.parameter. */
+      await fetch(SHEET_ENDPOINT,{
+        method:'POST',mode:'no-cors',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body:new URLSearchParams({name,email,company_url:url,role,attribution:attrLine}).toString()
       });
-      const data=await res.json().catch(()=>({}));
-      delivered=res.ok&&data.success===true;
+      delivered=true;
     }catch(err){delivered=false;}
   }
   if(delivered){
