@@ -1497,12 +1497,8 @@ addEventListener('scroll',(()=>{let sent={};return()=>{const d=Math.round(scroll
    Until the endpoint is set (or if it's ever unreachable), the form hands the
    lead to the visitor's own mail app pre-addressed to LEAD_EMAIL, so a lead is
    never lost. */
-/* Web3Forms: free, reliable, real CORS. Each submission is emailed straight to
-   LEAD_EMAIL. Get a key in 30s at https://web3forms.com (enter your email, copy
-   the access key, paste it below). Until the key is set, submit shows a graceful
-   "email us directly" message instead of silently losing the lead. */
-const WEB3FORMS_KEY="";                       /* <-- paste your Web3Forms access key here */
-const LEAD_EMAIL="arnav@zenithbureau.com";    /* where leads are emailed / shown to visitors */
+const SHEET_ENDPOINT="https://script.google.com/macros/s/AKfycbwURa8noOymq7eveqxATVQQOuRyHv_e0mh-QJE04LRojqFOJXv-oTb-2Tg3ZAzGgSqc/exec";
+const LEAD_EMAIL="arnav@zenithbureau.com";    /* shown to the visitor only if the Sheet endpoint is unreachable */
 const amodal=document.getElementById('amodal'),aForm=document.getElementById('aForm'),
       aFormView=document.getElementById('aFormView'),aSuccessView=document.getElementById('aSuccessView'),
       aSubmit=document.getElementById('aSubmit'),aClose=document.getElementById('aClose');
@@ -1550,20 +1546,15 @@ aForm.addEventListener('submit',async e=>{
   aSubmit.childNodes[0].nodeValue='Sending ';
   const attrLine=`from ${attr.referrer}${attr.utm_source?' · '+attr.utm_source+'/'+attr.utm_medium:''} · seen ${attr.first_seen}`;
   beacon('audit_submit',{name,email,company_url:url,role});
-  if(!WEB3FORMS_KEY){failGracefully();return;}
+  if(!SHEET_ENDPOINT){failGracefully();return;}
   try{
-    const res=await fetch('https://api.web3forms.com/submit',{
-      method:'POST',
-      headers:{'Content-Type':'application/json',Accept:'application/json'},
-      body:JSON.stringify({
-        access_key:WEB3FORMS_KEY,
-        subject:'New AI Visibility Audit request',
-        from_name:'Zenith Bureau site',
-        name,email,company_url:url,role,attribution:attrLine
-      })
+    /* no-cors POST to the Apps Script web app: the browser won't block it and the
+       response is opaque, so a completed request (no throw) means the row was written. */
+    await fetch(SHEET_ENDPOINT,{
+      method:'POST',mode:'no-cors',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body:new URLSearchParams({name,email,company_url:url,role,attribution:attrLine}).toString()
     });
-    const data=await res.json();
-    if(!data.success)throw new Error(data.message||'submit failed');
     document.getElementById('aSuccessEmail').textContent=email;
     aFormView.style.display='none';aSuccessView.classList.add('on');
   }catch(err){failGracefully();}
