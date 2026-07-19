@@ -1615,6 +1615,9 @@ let lastFocus=null;
 function openAudit(){
   lastFocus=document.activeElement;
   aFormView.style.display='';aSuccessView.classList.remove('on');
+  /* reset submit button + error so a prior submit never leaves it stuck on "Sending" */
+  if(aSubmit){aSubmit.disabled=false;aSubmit.childNodes[0].nodeValue='Get my audit ';}
+  var _ae=document.getElementById('aErr');if(_ae)_ae.style.display='none';
   amodal.classList.add('open');amodal.setAttribute('aria-hidden','false');
   document.body.style.overflow='hidden';
   setTimeout(()=>{var el=document.getElementById('a-email');if(el)el.focus();},60);
