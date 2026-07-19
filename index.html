@@ -1171,21 +1171,18 @@ a.statsrc:hover .sarr{transform:translate(2px,-2px)}
     <div class="aview" id="aFormView">
       <div class="akick">Free AI Visibility Audit</div>
       <h3 id="aTitle">See what AI says about <span class="accent">your category.</span></h3>
-      <p class="asub">We run your category through ChatGPT, Perplexity, and Google, then send you a branded report: who AI recommends today, which sources it cites, and where you're missing. Yours in a few minutes.</p>
+      <p class="asub">Drop your work email. I'll pull what ChatGPT, Perplexity, Claude and Gemini say about your category, who they recommend instead of you, and the fastest fixes, then walk you through it.</p>
       <form class="aform" id="aForm" novalidate>
-        <div class="afield" id="f-name"><label for="a-name">Your name</label><input id="a-name" name="name" type="text" autocomplete="name" placeholder="Jane Doe" required><span class="emsg">Please enter your name.</span></div>
-        <div class="afield" id="f-email"><label for="a-email">Work email</label><input id="a-email" name="email" type="email" autocomplete="email" placeholder="jane@company.com" required><span class="emsg">Enter a valid email so we can send the report.</span></div>
-        <div class="afield" id="f-url"><label for="a-url">Company website</label><input id="a-url" name="company_url" type="text" autocomplete="url" placeholder="company.com" required><span class="emsg">Enter your company URL so we can audit it.</span></div>
-        <div class="afield" id="f-role"><label for="a-role">Your role</label><input id="a-role" name="role" type="text" placeholder="Founder / Head of Marketing" required><span class="emsg">Tell us your role at the company.</span></div>
-        <button type="submit" class="btn-grad" id="aSubmit">Send me the report <span class="arw">→</span></button>
+        <div class="afield" id="f-email"><label for="a-email">Work email</label><input id="a-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required><span class="emsg">Enter a valid work email so I can send your audit.</span></div>
+        <button type="submit" class="btn-grad" id="aSubmit">Get my audit <span class="arw">→</span></button>
         <p class="aform-err" id="aErr" style="display:none"></p>
-        <p class="aform-micro">No call required. We only email you the report.</p>
+        <p class="aform-micro">Just your work email. I'll take it from there.</p>
       </form>
     </div>
     <div class="asuccess" id="aSuccessView">
       <div class="achk">✓</div>
-      <h3>Your report is <span class="accent">generating.</span></h3>
-      <p>We're building it now and will send it to <b id="aSuccessEmail">your inbox</b> shortly, with what AI recommends in your category today. If it's already you, you don't need us.</p>
+      <h3>Check your <span class="accent">inbox.</span></h3>
+      <p>I just emailed <b id="aSuccessEmail">you</b>. I'll pull what AI says about your category and send a time to walk you through it. If AI already names you, just reply and we'll skip the call.</p>
     </div>
   </div>
 </div>
@@ -1617,7 +1614,7 @@ function openAudit(){
   aFormView.style.display='';aSuccessView.classList.remove('on');
   amodal.classList.add('open');amodal.setAttribute('aria-hidden','false');
   document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('a-name').focus(),60);
+  setTimeout(()=>{var el=document.getElementById('a-email');if(el)el.focus();},60);
 }
 function closeAudit(){
   amodal.classList.remove('open');amodal.setAttribute('aria-hidden','true');
@@ -1631,25 +1628,33 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&amodal.classList.contains('o
 
 function markErr(id,on){document.getElementById(id).classList.toggle('err',on)}
 function validEmail(v){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
+function firstNameFromEmail(email){
+  var lp=(email.split('@')[0]||'').toLowerCase();
+  var generic=['info','sales','hello','hey','hi','team','contact','admin','support','marketing','office','mail','me','founder','ceo','cofounder','noreply','no-reply'];
+  var tok=lp.split(/[._+\-]/)[0].replace(/[^a-z]/g,'');
+  if(!tok||tok.length<2||generic.indexOf(tok)>-1)return '';
+  return tok.charAt(0).toUpperCase()+tok.slice(1);
+}
+function companyFromEmail(email){
+  var d=(email.split('@')[1]||'').toLowerCase().trim();
+  var personal=['gmail.com','googlemail.com','outlook.com','hotmail.com','yahoo.com','ymail.com','icloud.com','me.com','proton.me','protonmail.com','aol.com','live.com','msn.com'];
+  return personal.indexOf(d)>-1?'':d;
+}
 aForm.addEventListener('submit',async e=>{
   e.preventDefault();
-  const name=document.getElementById('a-name').value.trim();
   const email=document.getElementById('a-email').value.trim();
-  const url=document.getElementById('a-url').value.trim();
-  const role=document.getElementById('a-role').value.trim();
-  let ok=true;
-  markErr('f-name',!name);if(!name)ok=false;
-  markErr('f-email',!validEmail(email));if(!validEmail(email))ok=false;
-  markErr('f-url',!url);if(!url)ok=false;
-  markErr('f-role',!role);if(!role)ok=false;
-  if(!ok)return;
+  const name=firstNameFromEmail(email);  // best-effort from the local part
+  const url=companyFromEmail(email);      // domain (blank for personal inboxes)
+  const role='';
+  markErr('f-email',!validEmail(email));
+  if(!validEmail(email))return;
   const aErr=document.getElementById('aErr');
   aErr.style.display='none';
   function failGracefully(){
     /* never launch the visitor's Mail app — just tell them how to reach us */
     aErr.innerHTML=`Couldn't send just now. Email <a href="mailto:${LEAD_EMAIL}">${LEAD_EMAIL}</a> and we'll run your audit manually.`;
     aErr.style.display='';
-    aSubmit.disabled=false;aSubmit.childNodes[0].nodeValue='Send me the report ';
+    aSubmit.disabled=false;aSubmit.childNodes[0].nodeValue='Get my audit ';
   }
   aSubmit.disabled=true;aSubmit.querySelector('.chip')?.remove();
   aSubmit.childNodes[0].nodeValue='Sending ';
@@ -1676,7 +1681,7 @@ document.getElementById('capForm').addEventListener('submit',e=>{
   const em=e.target.querySelector('input').value.trim();
   beacon('audit_open',{from:'hero_capture'});
   openAudit();
-  if(em){document.getElementById('a-email').value=em;setTimeout(()=>document.getElementById('a-name').focus(),80);}
+  if(em){document.getElementById('a-email').value=em;}
 });
 
 </script>
