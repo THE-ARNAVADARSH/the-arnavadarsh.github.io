@@ -576,7 +576,16 @@ a.btn-grad{text-decoration:none}
 
 
 /* ---------- faq ---------- */
-.faqwrap{max-width:820px;margin-top:44px}
+.faqwrap{max-width:none;margin-top:0}
+.faqgrid{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(40px,6vw,88px);align-items:start}
+.faqhead{position:sticky;top:120px}
+.faqhead h2{margin:0}
+.faqlede{margin-top:18px;color:var(--muted);font-size:1rem;line-height:1.65;max-width:30ch}
+.faqcta{display:inline-flex;align-items:center;gap:9px;margin-top:26px;font-family:var(--display);font-weight:600;font-size:.98rem;color:var(--c2);transition:color .3s}
+.faqcta span{transition:transform .3s var(--ez)}
+.faqcta:hover{color:var(--c3)}
+.faqcta:hover span{transform:translateX(4px)}
+@media (max-width:900px){.faqgrid{grid-template-columns:1fr;gap:28px}.faqhead{position:static}.faqlede{max-width:46ch}}
 .faq{border-bottom:1px solid var(--line)}
 .faq summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:18px;padding:22px 4px;font-family:var(--display);font-weight:600;font-size:clamp(1rem,1.6vw,1.18rem);color:#eceaf0;transition:color .3s}
 .faq summary::-webkit-details-marker{display:none}
@@ -1119,14 +1128,20 @@ a.statsrc:hover .sarr{transform:translate(2px,-2px)}
 <!-- ===== FAQ ===== -->
 <section class="sec" id="faq">
   <div class="wrap">
-    <h2 class="rv">Asked, <span class="accent">answered.</span></h2>
-    <div class="faqwrap rv">
+    <div class="faqgrid">
+      <div class="faqhead rv">
+        <h2>Asked, <span class="accent">answered.</span></h2>
+        <p class="faqlede">Everything founders want to know before the first call.</p>
+        <a class="faqcta" href="#book">Still have a question? Book a call <span>&rarr;</span></a>
+      </div>
+      <div class="faqwrap rv">
       <details class="faq"><summary>What does Zenith Bureau actually do?<span class="fx">+</span></summary><p>We build the machine that makes AI cite you: a YouTube engine for your brand, a managed Reddit presence, and AEO/GEO work such as schema, an <code>llms.txt</code> file, and FAQ pages, so ChatGPT, Perplexity, and Gemini recommend you when buyers ask what to buy.</p></details>
       <details class="faq"><summary>How much of my time does it take?<span class="fx">+</span></summary><p>Three hours a month. You record what we script; we handle production, publishing, repurposing into LinkedIn posts and tweets, Reddit seeding, and tracking.</p></details>
       <details class="faq"><summary>Is the Reddit activity automated?<span class="fx">+</span></summary><p>No. A real human sits behind every comment. Your brand's Reddit presence is built into a recognized voice, and every dedicated account is trained on your product and raised in your niche.</p></details>
       <details class="faq"><summary>How do you measure progress?<span class="fx">+</span></summary><p>Monthly AI citation tracking across ChatGPT, Perplexity, and Google, plus a quarterly AI Visibility Report. One number, every month, rising.</p></details>
       <details class="faq"><summary>What does it cost?<span class="fx">+</span></summary><p>Plans are month to month and you can cancel anytime. Investment is shared on your call so we can scope it to your category.</p></details>
       <details class="faq"><summary>Who is this for?<span class="fx">+</span></summary><p>AI SaaS founders who want to be the answer AI gives in their category. If ChatGPT already names you, you don't need us.</p></details>
+      </div>
     </div>
   </div>
 </section>
