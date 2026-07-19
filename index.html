@@ -51,13 +51,13 @@
   --champ-deep:#8F6A2E;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
 body{background:var(--bg);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 button,input{font:inherit;color:inherit}
 a{color:inherit;text-decoration:none}
 
 /* ---------- backdrop: vignette + faint grid + dust ---------- */
-.hero{position:relative;min-height:min(100svh,980px);display:flex;flex-direction:column;overflow:hidden}
+.hero{position:relative;min-height:min(100svh,980px);display:flex;flex-direction:column;overflow:hidden;padding-top:97px}
 .hero::before{ /* grid */
   content:"";position:absolute;inset:0;
   background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),
@@ -77,8 +77,11 @@ a{color:inherit;text-decoration:none}
 .dust i{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,255,255,.35)}
 
 /* ---------- nav ---------- */
-.nav{position:relative;z-index:5;display:flex;align-items:center;justify-content:space-between;
-  gap:18px;padding:26px clamp(20px,4vw,56px);animation:fadedown .9s var(--ez) both}
+.nav{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;
+  gap:18px;padding:26px clamp(20px,4vw,56px);border-bottom:1px solid transparent;
+  transition:transform .4s var(--ez),background .3s var(--ez),backdrop-filter .3s,border-color .3s}
+.nav.nav-hidden{transform:translateY(-100%)}
+.nav.nav-scrolled{background:rgba(5,5,7,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom-color:var(--line)}
 @keyframes fadedown{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
 .brand{display:flex;align-items:center;gap:11px;font-family:var(--display);font-weight:700;font-size:1.02rem;letter-spacing:-.01em}
 .brand .zb{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--line);border-radius:9px;
@@ -1700,6 +1703,20 @@ document.getElementById('capForm').addEventListener('submit',async e=>{
   }catch(err){openAudit();document.getElementById('a-email').value=em;}
   if(btn)btn.disabled=false;
 });
+
+/* smart nav: fixed bar hides on scroll down, reveals on any scroll up */
+(function(){
+  var nav=document.querySelector('.nav'); if(!nav)return;
+  var lastY=window.scrollY||0, ticking=false;
+  function upd(){
+    var y=window.scrollY||0;
+    nav.classList.toggle('nav-scrolled', y>8);
+    nav.classList.toggle('nav-hidden', y>lastY && y>120);
+    lastY=y; ticking=false;
+  }
+  addEventListener('scroll',function(){ if(!ticking){ requestAnimationFrame(upd); ticking=true; } },{passive:true});
+  upd();
+})();
 
 </script>
 <script type="text/javascript">
