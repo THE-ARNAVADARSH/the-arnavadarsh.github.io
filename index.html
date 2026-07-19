@@ -1676,12 +1676,29 @@ aForm.addEventListener('submit',async e=>{
 
 /* wire every data-audit trigger + hero capture into the modal */
 document.querySelectorAll('[data-audit]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();beacon('audit_open');openAudit()}));
-document.getElementById('capForm').addEventListener('submit',e=>{
+function showAuditSuccess(email){
+  document.getElementById('aSuccessEmail').textContent=email;
+  aFormView.style.display='none';aSuccessView.classList.add('on');
+  amodal.classList.add('open');amodal.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+/* hero email bar: they already gave their email, so submit directly — no form, straight to confirmation */
+document.getElementById('capForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  const em=e.target.querySelector('input').value.trim();
+  const input=e.target.querySelector('input');
+  const em=input.value.trim();
+  if(!validEmail(em)){input.focus();return;}
+  if(!SHEET_ENDPOINT){beacon('audit_open',{from:'hero_capture'});openAudit();document.getElementById('a-email').value=em;return;}
   beacon('audit_open',{from:'hero_capture'});
-  openAudit();
-  if(em){document.getElementById('a-email').value=em;}
+  const btn=e.target.querySelector('button');if(btn)btn.disabled=true;
+  const name=firstNameFromEmail(em),url=companyFromEmail(em),role='';
+  const attrLine=`from ${attr.referrer}${attr.utm_source?' · '+attr.utm_source+'/'+attr.utm_medium:''} · seen ${attr.first_seen}`;
+  beacon('audit_submit',{name,email:em,company_url:url,role});
+  try{
+    await fetch(SHEET_ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:new URLSearchParams({name,email:em,company_url:url,role,attribution:attrLine}).toString()});
+    showAuditSuccess(em);
+  }catch(err){openAudit();document.getElementById('a-email').value=em;}
+  if(btn)btn.disabled=false;
 });
 
 </script>
