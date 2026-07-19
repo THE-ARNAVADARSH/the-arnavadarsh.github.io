@@ -567,6 +567,10 @@ a.btn-grad{text-decoration:none}
 .afield .emsg{display:none;margin-top:6px;font-size:.76rem;color:#e2694f}
 .afield.err input{border-color:#a04a37}
 .afield.err .emsg{display:block}
+.afield select{width:100%;padding:13px 16px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--text);font-size:.95rem;outline:0;cursor:pointer;-webkit-appearance:none;appearance:none;transition:border-color .3s,box-shadow .3s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+.afield select:focus{border-color:rgba(201,164,94,.5);box-shadow:0 0 0 4px rgba(201,164,94,.09)}
+.afield select option{background:#141418;color:var(--text)}
+.afield.err select{border-color:#a04a37}
 .aform .btn-grad{width:100%;justify-content:center;padding:14px 22px;font-size:.95rem;border:none}
 .aform-err{font-size:.8rem;color:#e2b08f;text-align:center}
 .aform-micro{font-family:var(--mono);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);text-align:center}
@@ -1177,6 +1181,8 @@ a.statsrc:hover .sarr{transform:translate(2px,-2px)}
       <p class="asub">Drop your work email. I'll pull what ChatGPT, Perplexity, Claude and Gemini say about your category, who they recommend instead of you, and the fastest fixes, then walk you through it.</p>
       <form class="aform" id="aForm" novalidate>
         <div class="afield" id="f-email"><label for="a-email">Work email</label><input id="a-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required><span class="emsg">Enter a valid work email so I can send your audit.</span></div>
+        <div class="afield" id="f-company" style="display:none"><label for="a-url">Company website</label><input id="a-url" name="company_url" type="text" autocomplete="url" placeholder="company.com"><span class="emsg">Enter your company website.</span></div>
+        <div class="afield" id="f-role" style="display:none"><label for="a-role">Your role</label><select id="a-role" name="role"><option value="">Select your role</option><option>Founder / CEO</option><option>Co-founder</option><option>CMO / Head of Marketing</option><option>Head of Growth</option><option>Marketing / Growth</option><option>Product</option><option>Other</option></select><span class="emsg">Select your role.</span></div>
         <button type="submit" class="btn-grad" id="aSubmit">Get my audit <span class="arw">→</span></button>
         <p class="aform-err" id="aErr" style="display:none"></p>
         <p class="aform-micro">Just your work email. I'll take it from there.</p>
@@ -1618,6 +1624,7 @@ function openAudit(){
   /* reset submit button + error so a prior submit never leaves it stuck on "Sending" */
   if(aSubmit){aSubmit.disabled=false;aSubmit.childNodes[0].nodeValue='Get my audit ';}
   var _ae=document.getElementById('aErr');if(_ae)_ae.style.display='none';
+  hideDetailFields();
   amodal.classList.add('open');amodal.setAttribute('aria-hidden','false');
   document.body.style.overflow='hidden';
   setTimeout(()=>{var el=document.getElementById('a-email');if(el)el.focus();},60);
@@ -1646,14 +1653,35 @@ function companyFromEmail(email){
   var personal=['gmail.com','googlemail.com','outlook.com','hotmail.com','yahoo.com','ymail.com','icloud.com','me.com','proton.me','protonmail.com','aol.com','live.com','msn.com'];
   return personal.indexOf(d)>-1?'':d;
 }
+function showDetailFields(){
+  document.getElementById('f-company').style.display='';
+  document.getElementById('f-role').style.display='';
+  var m=document.querySelector('.aform-micro'); if(m)m.textContent="Two quick details and I'll run your audit.";
+}
+function hideDetailFields(){
+  ['f-company','f-role'].forEach(function(id){var el=document.getElementById(id); if(el){el.style.display='none';el.classList.remove('err');}});
+  var r=document.getElementById('a-role'); if(r)r.selectedIndex=0;
+  var m=document.querySelector('.aform-micro'); if(m)m.textContent="Just your work email. I'll take it from there.";
+}
 aForm.addEventListener('submit',async e=>{
   e.preventDefault();
   const email=document.getElementById('a-email').value.trim();
-  const name=firstNameFromEmail(email);  // best-effort from the local part
-  const url=companyFromEmail(email);      // domain (blank for personal inboxes)
-  const role='';
   markErr('f-email',!validEmail(email));
   if(!validEmail(email))return;
+  const isPersonal=!companyFromEmail(email);
+  const detailsShown=document.getElementById('f-company').style.display!=='none';
+  /* personal inbox: the domain can't tell us the company, so ask for it + role */
+  if(isPersonal && !detailsShown){ showDetailFields(); document.getElementById('a-url').focus(); return; }
+  const name=firstNameFromEmail(email);
+  let url, role='';
+  if(isPersonal){
+    url=document.getElementById('a-url').value.trim();
+    role=document.getElementById('a-role').value;
+    let bad=false;
+    markErr('f-company',!url); if(!url)bad=true;
+    markErr('f-role',!role); if(!role)bad=true;
+    if(bad)return;
+  } else { url=companyFromEmail(email); }
   const aErr=document.getElementById('aErr');
   aErr.style.display='none';
   function failGracefully(){
@@ -1694,6 +1722,14 @@ document.getElementById('capForm').addEventListener('submit',async e=>{
   const input=e.target.querySelector('input');
   const em=input.value.trim();
   if(!validEmail(em)){input.focus();return;}
+  /* personal inbox: can't read the company from the domain, so open the form for company + role */
+  if(!companyFromEmail(em)){
+    beacon('audit_open',{from:'hero_capture'});
+    openAudit();document.getElementById('a-email').value=em;
+    showDetailFields();
+    setTimeout(()=>{var el=document.getElementById('a-url');if(el)el.focus();},80);
+    return;
+  }
   if(!SHEET_ENDPOINT){beacon('audit_open',{from:'hero_capture'});openAudit();document.getElementById('a-email').value=em;return;}
   beacon('audit_open',{from:'hero_capture'});
   const btn=e.target.querySelector('button');if(btn)btn.disabled=true;
