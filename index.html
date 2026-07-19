@@ -840,39 +840,12 @@ a.statsrc:hover .sarr{transform:translate(2px,-2px)}
   <!-- copy -->
   <div class="hwrap">
     <h1>When your buyers ask ChatGPT <br>what to buy, <span class="accent">be the answer.</span></h1>
-    <p class="sub">We make ChatGPT, Perplexity, Claude, Gemini recommend your SaaS.<br><b>You record three hours a month.</b> We do the rest.</p>
+    <p class="sub">For AI SaaS past $10k MRR: we make ChatGPT, Perplexity, Claude, Gemini recommend your SaaS.<br><b>You record three hours a month.</b> We do the rest.</p>
     <form class="cap" id="capForm" novalidate>
       <input type="email" placeholder="Work email" aria-label="Work email" required>
       <button type="submit" class="btn-grad">Get my free AI discoverability audit <span class="arw">→</span></button>
     </form>
   </div>
-
-  <!-- hero A/B rotator: sticky per-visitor variant (localStorage), swaps before paint.
-       #1 is the control = current hero. Winner read in GA4 via the 'variant' event param. -->
-  <script>
-  (function(){
-    var V=[
-      {id:1,h1:"When your buyers ask ChatGPT <br>what to buy, <span class='accent'>be the answer.</span>",sub:"We make ChatGPT, Perplexity, Claude, Gemini recommend your SaaS.<br><b>You record three hours a month.</b> We do the rest."},
-      {id:2,h1:"Does ChatGPT recommend your tool, <br>or <span class='accent'>your competitor's?</span>",sub:"For AI B2B SaaS past $10k MRR. We make the models name you. <b>Three hours of your time a month.</b>"},
-      {id:3,h1:"Great product, <span class='accent'>zero AI citations.</span> <br>That's why growth stalled.",sub:"For AI SaaS founders past $10k MRR: we make ChatGPT, Perplexity and Gemini recommend you."},
-      {id:4,h1:"Right now, AI is recommending <span class='accent'>your competitor.</span>",sub:"We flip that with YouTube and Reddit, the two sources AI cites most. <b>Three hours of your time a month.</b>"},
-      {id:5,h1:"The next 100 buyers will ask AI first. <br><span class='accent'>Be the answer they get.</span>",sub:"Done-for-you YouTube + Reddit for AI SaaS past $10k MRR."},
-      {id:6,h1:"Reddit and YouTube decide <span class='accent'>what AI recommends.</span>",sub:"We put you in both. For AI SaaS founders, CMOs and growth leads. <b>You record three hours a month.</b>"},
-      {id:7,h1:"One brand channel. <span class='accent'>$25,000 in 90 days.</span> Zero ads.",sub:"The YouTube + Reddit engine that gets AI recommending your SaaS. <b>Three hours a month from you.</b>"},
-      {id:8,h1:"How AI SaaS founders get ChatGPT <br>to <span class='accent'>recommend their tool.</span>",sub:"YouTube + Reddit, done for you. For companies past $10k MRR."},
-      {id:9,h1:"In 12 months, one tool will be <span class='accent'>AI's answer in your category.</span>",sub:"Decide if it's yours. For AI SaaS founders past $10k MRR. <b>Three hours a month, we handle the rest.</b>"},
-      {id:10,h1:"Invisible to ChatGPT means <span class='accent'>invisible to buyers.</span>",sub:"Get cited by the models your buyers actually ask. Done for you."}
-    ];
-    var KEY="zb_hero_variant",id;
-    try{id=parseInt(localStorage.getItem(KEY),10);}catch(e){}
-    if(!(id>=1&&id<=V.length)){id=1+Math.floor(Math.random()*V.length);try{localStorage.setItem(KEY,id);}catch(e){}}
-    window.__zbVariant=id;
-    var v=V[id-1]||V[0];
-    var h=document.querySelector(".hwrap h1"),s=document.querySelector(".hwrap .sub");
-    if(h)h.innerHTML=v.h1;
-    if(s)s.innerHTML=v.sub;
-  })();
-  </script>
 
   <!-- the growth curve -->
   <div class="stage" id="stage">
